@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: io.github.renepanke
+testFramework: junit
+sourceLanguage: java
+buildTool: gradle_kotlin
+features: [ annotation-api, app-name, email-javamail, gradle, http-client-test, jackson-databind, java, java-application, junit, logback, micronaut-aot, micronaut-build, micronaut-http-validation, netty-server, problem-json, readme, serialization-jackson, shade, static-resources, validation, yaml, yaml-build ]

@@ -1,0 +1,11 @@
+micronaut:
+  application:
+    name: restimaps
+problem:
+  enabled: true
+  stack-trace: true
+imaps:
+  host: "${restimaps.host}"
+  port: "${restimaps.port}"
+  username: "${restimaps.username}"
+  password: "${restimaps.password}"
