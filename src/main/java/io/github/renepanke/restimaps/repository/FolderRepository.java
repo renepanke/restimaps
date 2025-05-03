@@ -4,16 +4,17 @@ import io.github.renepanke.restimaps.exceptions.checked.FolderNotCloseableExcept
 import io.github.renepanke.restimaps.exceptions.checked.FolderNotFoundException;
 import io.github.renepanke.restimaps.exceptions.checked.FolderNotOpenableException;
 import io.github.renepanke.restimaps.exceptions.checked.FoldersNotRetrievableException;
+import io.github.renepanke.restimaps.lang.Tuple;
 import io.github.renepanke.restimaps.security.SecurityCache;
 import io.micronaut.context.annotation.Bean;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.mail.Folder;
 import jakarta.mail.MessagingException;
-import org.eclipse.angus.mail.imap.IMAPFolder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Bean
 @Singleton
@@ -27,20 +28,39 @@ public class FolderRepository {
     }
 
     public Folder getFolder(String folderName, String jwt) throws FolderNotFoundException {
-        try {
-            return this.storeProvider.getStore().getFolder(folderName);
-        } catch (MessagingException e) {
-            throw new FolderNotFoundException("Folder <" + "> hasn't been found.", e);
+        Optional<Tuple<Folder, MessagingException>> result = this.securityCache.get(jwt).map(it -> {
+            try {
+                return Tuple.of(it.getFolder(folderName), null);
+            } catch (MessagingException e) {
+                return Tuple.of(null, e);
+            }
+        });
+        if (result.isEmpty()) {
+            throw new FolderNotFoundException(folderName);
         }
+        if (result.get().getRight() != null) {
+            throw new FolderNotFoundException("Folder <" + folderName + "> not found.", result.get().getRight());
+        }
+        return result.get().getLeft();
     }
 
-    public List<Folder> getFolders() throws FoldersNotRetrievableException {
-        IMAPFolder imapFolder = null;
-        imapFolder.getUID()
+    public List<Folder> getFolders(String jwt) throws FoldersNotRetrievableException {
         List<Folder> foldersList = new ArrayList<>();
         try {
-            Folder[] folders = this.storeProvider.getStore().getDefaultFolder().list();
-            for (Folder folder : folders) {
+            Optional<Tuple<Folder[], MessagingException>> result = this.securityCache.get(jwt).map(it -> {
+                try {
+                    return Tuple.of(it.getDefaultFolder().list(), null);
+                } catch (MessagingException e) {
+                    return Tuple.of(null, e);
+                }
+            });
+            if (result.isEmpty()) {
+                throw new FoldersNotRetrievableException("Folders not retrievable.");
+            }
+            if (result.get().getRight() != null) {
+                throw new FoldersNotRetrievableException("Folders not retrievable.", result.get().getRight());
+            }
+            for (Folder folder : result.get().getLeft()) {
                 if ((folder.getType() & Folder.HOLDS_MESSAGES) != 0) {
                     foldersList.add(folder);
                 }

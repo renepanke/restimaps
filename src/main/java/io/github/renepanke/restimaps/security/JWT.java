@@ -3,6 +3,7 @@ package io.github.renepanke.restimaps.security;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
+import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 
 import java.nio.charset.StandardCharsets;
@@ -10,10 +11,11 @@ import java.text.ParseException;
 
 public final class JWT {
 
+    // 256-bit key (32 bytes) for A256GCM
     private static final byte[] SHARED_SECRET = "11111111111111111111111111111111".getBytes(StandardCharsets.UTF_8);
 
     private JWT() {
-        throw new AssertionError();
+        throw new AssertionError("No instances for you!");
     }
 
     public static String createJwt(String host, int port, String username, String password) throws JOSEException {
@@ -24,16 +26,19 @@ public final class JWT {
                 .claim("password", password)
                 .build();
 
-        JWEHeader header = new JWEHeader(JWEAlgorithm.DIR, EncryptionMethod.A256GCM);
-        JWEObject jweObject = new JWEObject(header, new Payload(claimsSet.toJSONObject()));
-        jweObject.encrypt(new DirectEncrypter(SHARED_SECRET));
-        return jweObject.serialize();
+        JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A256GCM)
+                .contentType("JWT") // Optional, recommended
+                .build();
+
+        EncryptedJWT encryptedJWT = new EncryptedJWT(header, claimsSet);
+        encryptedJWT.encrypt(new DirectEncrypter(SHARED_SECRET));
+
+        return encryptedJWT.serialize();
     }
 
     public static JWTClaimsSet parseJwt(String token) throws ParseException, JOSEException {
-        JWEObject jweObject = JWEObject.parse(token);
-        jweObject.decrypt(new DirectDecrypter(SHARED_SECRET));
-        return JWTClaimsSet.parse(jweObject.getPayload().toJSONObject());
+        EncryptedJWT encryptedJWT = EncryptedJWT.parse(token);
+        encryptedJWT.decrypt(new DirectDecrypter(SHARED_SECRET));
+        return encryptedJWT.getJWTClaimsSet();
     }
-
 }

@@ -36,8 +36,8 @@ public class AttachmentService {
         this.attachmentMapper = attachmentMapper;
     }
 
-    public List<Attachment> getAttachments(String folderId, String emailId) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, EmailNotFoundException, AttachmentNameNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, AttachmentPartsNotRetrievableException, AttachmentDataSourceNotRetrievableException {
-        Folder folder = this.folderRepository.getFolder(folderId);
+    public List<Attachment> getAttachments(String folderId, String emailId, String jwt) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, EmailNotFoundException, AttachmentNameNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, AttachmentPartsNotRetrievableException, AttachmentDataSourceNotRetrievableException {
+        Folder folder = this.folderRepository.getFolder(folderId, jwt);
         Message message = this.emailRepository.getEmail(folder, emailId).orElseThrow(EmailNotFoundException::new);
         Map<String, DataSource> attachments = this.attachmentRepository.getAttachments(message);
         return attachments.entrySet().stream()
@@ -52,15 +52,15 @@ public class AttachmentService {
                 .toList();
     }
 
-    public Attachment getAttachment(String folderId, String emailId, String attachmentId) throws FolderNotFoundException, EmailNotFoundException, AttachmentNameNotRetrievableException, EmailsNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, AttachmentPartsNotRetrievableException, AttachmentDataSourceNotRetrievableException, FolderNotOpenableException, AttachmentNotFoundException {
-        return this.getAttachments(folderId, emailId)
+    public Attachment getAttachment(String folderId, String emailId, String attachmentId, String jwt) throws FolderNotFoundException, EmailNotFoundException, AttachmentNameNotRetrievableException, EmailsNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, AttachmentPartsNotRetrievableException, AttachmentDataSourceNotRetrievableException, FolderNotOpenableException, AttachmentNotFoundException {
+        return this.getAttachments(folderId, emailId, jwt)
                 .stream().filter(it -> Objects.equals(attachmentId, it.getId()))
                 .findFirst()
                 .orElseThrow(AttachmentNotFoundException::new);
     }
 
-    public StreamedFile getAttachmentContent(String folderId, String emailId, String attachmentId) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, EmailNotFoundException, AttachmentNameNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, AttachmentNotFoundException, AttachmentPartsNotRetrievableException, IOException, AttachmentDataSourceNotRetrievableException {
-        Folder folder = this.folderRepository.getFolder(folderId);
+    public StreamedFile getAttachmentContent(String folderId, String emailId, String attachmentId, String jwt) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, EmailNotFoundException, AttachmentNameNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, AttachmentNotFoundException, AttachmentPartsNotRetrievableException, IOException, AttachmentDataSourceNotRetrievableException {
+        Folder folder = this.folderRepository.getFolder(folderId, jwt);
         Message message = this.emailRepository.getEmail(folder, emailId).orElseThrow(EmailNotFoundException::new);
         return this.attachmentRepository.getAttachmentContent(attachmentId, message);
     }

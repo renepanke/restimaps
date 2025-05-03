@@ -5,6 +5,7 @@ import io.micronaut.context.annotation.Bean;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MutableHttpResponse;
+import io.micronaut.http.annotation.Filter;
 import io.micronaut.http.filter.HttpServerFilter;
 import io.micronaut.http.filter.ServerFilterChain;
 import jakarta.inject.Inject;
@@ -15,8 +16,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
+import static io.github.renepanke.restimaps.security.JWT.createJwt;
+import static io.github.renepanke.restimaps.security.JWT.parseJwt;
+
 @Bean
 @Singleton
+@Filter("/restimap**/**")
 public class AuthenticationFilter implements HttpServerFilter {
 
     private final SecurityCache securityCache;
@@ -28,9 +33,6 @@ public class AuthenticationFilter implements HttpServerFilter {
 
     @Override
     public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain chain) {
-        if (request.getPath().equalsIgnoreCase("/auth/login")) {
-            return chain.proceed(request);
-        }
 
         String authorization = request.getHeaders().getAuthorization().orElse(null);
         if (authorization == null || !authorization.startsWith("Bearer ")) {
@@ -41,7 +43,8 @@ public class AuthenticationFilter implements HttpServerFilter {
             return chain.proceed(request);
         }
         try {
-            JWTClaimsSet claimsSet = JWT.parseJwt(authorization);
+            authorization = authorization.substring("Bearer ".length());
+            JWTClaimsSet claimsSet = parseJwt(authorization);
             String host = claimsSet.getStringClaim("host");
             int port = claimsSet.getIntegerClaim("port");
             String username = claimsSet.getStringClaim("username");
@@ -54,7 +57,16 @@ public class AuthenticationFilter implements HttpServerFilter {
             request.setAttribute("jwt", authorization);
             return chain.proceed(request);
         } catch (Exception e) {
-            return Mono.just(HttpResponse.unauthorized().toMutableResponse());
+            return Mono.just(HttpResponse.unauthorized().toMutableResponse().body(e.getMessage()));
         }
     }
+
+    public static void main(String[] args) throws Exception {
+        String token = createJwt("localhost", 5432, "user", "secret");
+        System.out.println("Token: " + token);
+
+        JWTClaimsSet claims = parseJwt(token);
+        System.out.println("Parsed claims: " + claims.toJSONObject());
+    }
+
 }

@@ -35,8 +35,8 @@ public class EmailService {
         this.emailMapper = emailMapper;
     }
 
-    public List<Email> getEmails(String folderId) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException {
-        Folder folder = this.folderRepository.getFolder(folderId);
+    public List<Email> getEmails(String folderId, String jwt) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException {
+        Folder folder = this.folderRepository.getFolder(folderId, jwt);
         return this.emailRepository.getEmails(folder).stream()
                 .map(it -> {
                     try {
@@ -49,8 +49,8 @@ public class EmailService {
                 .toList();
     }
 
-    public Email getEmail(String folderId, String emailId) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, EmailRecipientsNotRetrievable, EmailDateNotRetrievableException, EmailReadReceiptStatusNotRetrievableException, EmailFromNotRetrievable, EmailReplyToNotRetrievableException, AttachmentDataSourceNotRetrievableException, AttachmentNameNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, EmailReadStatusNotRetrievableException, EmailSubjectNotRetrievableException, AttachmentPartsNotRetrievableException, EmailContentNotRetrievableException, EmailSenderNotRetrievableException, EmailIdNotFoundException, EmailIdNotRetrievableException {
-        Folder folder = this.folderRepository.getFolder(folderId);
+    public Email getEmail(String folderId, String emailId, String jwt) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, EmailRecipientsNotRetrievable, EmailDateNotRetrievableException, EmailReadReceiptStatusNotRetrievableException, EmailFromNotRetrievable, EmailReplyToNotRetrievableException, AttachmentDataSourceNotRetrievableException, AttachmentNameNotRetrievableException, UnsupportedAttachmentEncodingException, AttachmentDataSourceInputStreamNotRetrievable, AttachmentMediaTypeNotRetrievableException, AttachmentContentIdNotRetrievableException, EmailReadStatusNotRetrievableException, EmailSubjectNotRetrievableException, AttachmentPartsNotRetrievableException, EmailContentNotRetrievableException, EmailSenderNotRetrievableException, EmailIdNotFoundException, EmailIdNotRetrievableException {
+        Folder folder = this.folderRepository.getFolder(folderId, jwt);
         Message message = this.emailRepository.getEmail(folder, emailId).orElse(null);
         if (message == null) {
             return null;
@@ -58,8 +58,8 @@ public class EmailService {
         return this.emailMapper.map(message);
     }
 
-    public StreamedFile getEmailContent(String folderId, String emailId) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, IOException {
-        Folder folder = this.folderRepository.getFolder(folderId);
+    public StreamedFile getEmailContent(String folderId, String emailId, String jwt) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException, IOException {
+        Folder folder = this.folderRepository.getFolder(folderId, jwt);
         Message message = this.emailRepository.getEmail(folder, emailId).orElse(null);
         if (message == null) {
             return null;

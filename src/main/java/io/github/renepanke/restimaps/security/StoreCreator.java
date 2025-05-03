@@ -1,6 +1,5 @@
 package io.github.renepanke.restimaps.security;
 
-import jakarta.mail.AuthenticationFailedException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.Store;

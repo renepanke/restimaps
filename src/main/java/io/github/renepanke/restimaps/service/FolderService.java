@@ -27,15 +27,15 @@ public class FolderService {
         this.folderMapper = folderMapper;
     }
 
-    public List<Folder> getFolders() throws FoldersNotRetrievableException {
-        return this.folderRepository.getFolders().stream()
+    public List<Folder> getFolders(String jwt) throws FoldersNotRetrievableException {
+        return this.folderRepository.getFolders(jwt).stream()
                 .map(this.folderMapper::mapWithoutEmailDetails)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    public Folder getFolder(String folderName) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException {
-        return this.folderMapper.map(this.folderRepository.getFolder(folderName));
+    public Folder getFolder(String folderName, String jwt) throws FolderNotFoundException, EmailsNotRetrievableException, FolderNotOpenableException {
+        return this.folderMapper.map(this.folderRepository.getFolder(folderName, jwt));
     }
 
 }
