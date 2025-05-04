@@ -2,8 +2,10 @@ package io.github.renepanke.restimaps.security
 
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Filter
+import io.micronaut.http.exceptions.HttpStatusException
 import io.micronaut.http.filter.HttpServerFilter
 import io.micronaut.http.filter.ServerFilterChain
 import jakarta.inject.Inject
@@ -28,28 +30,30 @@ class AuthenticationFilterK : HttpServerFilter {
         request: HttpRequest<*>?,
         chain: ServerFilterChain?
     ): Publisher<MutableHttpResponse<*>?>? {
-        var authorization = request?.headers?.authorization?.orElse(null)
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return Mono.just(HttpResponse.unauthorized<Any>().toMutableResponse())
-        }
-        authorization = authorization.substring("Bearer ".length)
+        try {
+            var authorization = request?.headers?.authorization?.orElse(null)
+            if (authorization == null || !authorization.startsWith("Bearer ")) {
+                return Mono.just(HttpResponse.unauthorized<Any>().toMutableResponse())
+            }
+            authorization = authorization.substring("Bearer ".length)
 
-        val store = securityCache.get(authorization)
-        if (store != null) {
+            val store = securityCache.get(authorization)
+            if (store != null) {
+                request?.setAttribute("jwt", authorization)
+                return chain?.proceed(request)
+            }
+
+            val claimsSet = jwt.parseJwt(authorization)
+            val host = claimsSet.getStringClaim("host")
+            val port = claimsSet.getIntegerClaim("port")
+            val username = claimsSet.getStringClaim("username")
+            val password = claimsSet.getStringClaim("password")
+            val newStore = createStore(host, port, username, password)
+            securityCache.store(authorization, newStore)
             request?.setAttribute("jwt", authorization)
             return chain?.proceed(request)
+        } catch (e: Exception) {
+            throw HttpStatusException(HttpStatus.UNAUTHORIZED, e.message)
         }
-
-        val claimsSet = jwt.parseJwt(authorization)
-        val host = claimsSet.getStringClaim("host")
-        val port = claimsSet.getIntegerClaim("port")
-        val username = claimsSet.getStringClaim("username")
-        val password = claimsSet.getStringClaim("password")
-        val newStore = createStore(host, port, username, password)
-        securityCache.store(authorization, newStore)
-        request?.setAttribute("jwt", authorization)
-        return chain?.proceed(request)
-
-
     }
 }
