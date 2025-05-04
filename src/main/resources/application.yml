@@ -1,11 +1,35 @@
 micronaut:
+  server:
+    host: 0.0.0.0
+    port: 8080
   application:
     name: restimaps
-#problem:
-#  enabled: true
-#  stack-trace: true
-imaps:
-  host: "${restimaps.host}"
-  port: "${restimaps.port}"
-  username: "${restimaps.username}"
-  password: "${restimaps.password}"
+  control-panel:
+    enabled: true
+    path: "/control-panel"
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        step: PT1M
+        path: "/metrics"  # Explicitly setting the path for Prometheus metrics
+        format: "text"    # Explicitly set the format to text (default is Prometheus text format)
+endpoints:
+  metrics:
+    enabled: false
+#    sensitive: false   # this is the JSON endpoint
+  prometheus:
+    enabled: true      # turn on the Prometheus‐text endpoint
+    path: /metrics     # (optional) override to re‐use /metrics
+    sensitive: false   # make it scrape‐able without auth
+  health:
+    enabled: true
+    details-visible: anonymous
+  env:
+    enabled: true
+    sensitive: true
+  loggers:
+    enabled: true
+  info:
+    enabled: true

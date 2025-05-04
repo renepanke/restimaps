@@ -30,6 +30,16 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
     implementation("io.micronaut.email:micronaut-email-javamail")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
+    // ~~~ MICRONAUT METRICS ~~~
+    implementation("io.micronaut:micronaut-management")
+    implementation("io.micronaut.micrometer:micronaut-micrometer-core")
+    implementation("io.micronaut.micrometer:micronaut-micrometer-registry-prometheus")
+    // ~~~ MICRONAUT METRICS ~~~
+    // ~~~ GRAFANA PYROSCOPE ~~~
+    implementation("io.pyroscope:agent:0.18.0")
+    // ~~~ GRAFANA PYROSCOPE ~~~
+    implementation("io.micronaut.controlpanel:micronaut-control-panel-ui")
+    implementation("io.micronaut.controlpanel:micronaut-control-panel-management")
     implementation("io.micronaut.reactor:micronaut-reactor")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.validation:micronaut-validation")
@@ -59,7 +69,8 @@ java {
 }
 
 kapt {
-    generateStubs = true
+    generateStubs = false
+    keepJavacAnnotationProcessors = true
     correctErrorTypes = true
 }
 
