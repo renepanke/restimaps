@@ -1,9 +1,9 @@
 micronaut:
   application:
     name: restimaps
-problem:
-  enabled: true
-  stack-trace: true
+#problem:
+#  enabled: true
+#  stack-trace: true
 imaps:
   host: "${restimaps.host}"
   port: "${restimaps.port}"
